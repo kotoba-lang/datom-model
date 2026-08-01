@@ -1,0 +1,6 @@
+node_modules/
+out/
+.shadow-cljs/
+shadow-cljs.edn
+.cpcache/
+target/
