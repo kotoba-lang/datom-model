@@ -5,11 +5,25 @@ The Datomic-shaped model layer in portable `.cljc`: `transact`, schema-as-datoms
 [`datalog.index`](https://github.com/kotoba-lang/datalog) db value.
 
 Extracted from [`kotoba-lang/kotobase-peer`](https://github.com/kotoba-lang/kotobase-peer)'s
-`kotobase-peer.core` (@ `780b2216a26664b20ce6dbbedabd36c9901c5914`), whose 2,766-line
+`kotobase-peer.core` (@ `ea4a8e8b0f757a5f15a28cc3a0ac42406b65ffde`), whose 2,862-line
 `core.cljc` fused a pure Datomic model with a content-addressed persistence engine.
-Only the model half is here: `empty-db` (line 115) through `ident` (line 869), i.e.
-everything above that file's own `;; ── persistence: content-addressed, chained,
-verifiable ──` divider at line 870.
+Only the model half is here: `empty-db` through `ident`, i.e. everything above that
+file's own `;; ── persistence: content-addressed, chained, verifiable ──` divider
+(line 890 at that commit).
+
+### Staying in sync with `kotobase-peer`
+
+The extraction base was originally `780b2216a26664b20ce6dbbedabd36c9901c5914` and was
+re-synced to `ea4a8e8b` on 2026-08-02. Between those two commits `core.cljc` changed by
++121/−25 lines, but **the model half moved in exactly one place**: `datalog-query-plan`
+now estimates a clause with `datalog.query/cardinality` instead of
+`(count (datalog.query/query ...))`, and hands the resulting estimates to the executor as
+`:clause-cardinality` (ADR-2608021000 §6-4-1). Everything else in that range was the
+persistence half — the novelty cons-chain growing batched 16-entry segments — which by
+construction is not in this repo.
+
+That is the check to run when re-syncing: diff peer's `core.cljc` truncated at its own
+divider, at the old and new base, and port only what that shows.
 
 This is an **additive** extraction. `kotobase-peer` is untouched and still serves
 production traffic through its own copy; re-pointing it at this library is a separate

@@ -552,15 +552,36 @@
                                {:id id
                                 :clause clause
                                 :vars (into #{} (filter datalog-var?) clause)
+                                ;; `dq/cardinality`, not `(count (dq/query
+                                ;; ...))`: the planner wants a NUMBER, and
+                                ;; building a set to count it made this the
+                                ;; single largest term in an LDBC IC09 query --
+                                ;; 361,246 rows hashed into a set and discarded,
+                                ;; 38% of the query's total time, on every call
+                                ;; (measured in `kotobase-peer`,
+                                ;; bench/results/2026-08-02-scan-instrumentation.edn).
+                                ;; Same `visible?`, same number; no set.
                                 :estimated-rows (if (some? supplied)
                                                   supplied
-                                                  (count (dq/query db pattern visible?)))
+                                                  (dq/cardinality db pattern visible?))
                                 :estimate-source (if (some? supplied)
                                                    :materialized-statistics
                                                    :visible-scan)}))
                            (range) where)
              plan (stats/plan-clause-order clauses)]
-         {:query (assoc query :where (mapv :clause plan))
+         {:query (assoc query
+                        :where (mapv :clause plan)
+                        ;; The same estimates that chose the order, handed to
+                        ;; the executor so it can also choose a STRATEGY per
+                        ;; clause: one broad scan plus a hash join when a
+                        ;; clause's relation is small relative to the number
+                        ;; of keyed scans a step would issue for it, keyed
+                        ;; scans otherwise (`datalog.core`, ADR-2608021000
+                        ;; §6-4-1). These numbers were already computed and
+                        ;; then thrown away; the executor was left guessing at
+                        ;; something the planner had measured.
+                        :clause-cardinality
+                        (into {} (map (juxt :clause :estimated-rows)) plan))
           :plan plan
           :optimized? true})
        {:query query
