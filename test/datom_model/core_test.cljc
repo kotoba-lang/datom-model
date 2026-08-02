@@ -1,6 +1,6 @@
 (ns datom-model.core-test
   "Ported from `kotoba-lang/kotobase-peer`'s `kotobase-peer.core-test`
-  (@ 780b2216a26664b20ce6dbbedabd36c9901c5914) -- every test there that
+  (@ ea4a8e8b0f757a5f15a28cc3a0ac42406b65ffde) -- every test there that
   exercises the MODEL half (transact / schema / :db/ident / datoms / q /
   query / pull / entity). The persistence-half tests (commit!, fold!,
   hydrate-*, cold-datoms, as-of/since/history, verify-chain, and the whole
