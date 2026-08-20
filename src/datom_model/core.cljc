@@ -19,7 +19,7 @@
 
   `ref?` -- the predicate deciding whether a value is a REFERENCE, i.e.
   whether it (a) survives quad coercion verbatim instead of being
-  stringified and (b) gets a reverse-reference (`:ocp`/VAET) index entry.
+  stringified and (b) gets a reverse-reference (`:vaet`) index entry.
   `kotobase-peer` defaulted it to `ipld.core/link?`, which was the only
   reason its model half needed IPLD at all. `datalog.index` already made
   `ref?` required for exactly this reason (see its README's \"The one cut\");
@@ -57,7 +57,7 @@
    (so it survives to `assert-quad`'s own `ref?` check as the same value it
    was); anything else stringifies. The SAME `ref?` must be used here and at
    `assert-quad` -- if they disagreed, a reference would be stringified on the
-   way in and then fail the reverse-index test, silently emptying `:ocp`.
+   way in and then fail the reverse-index test, silently emptying `:vaet`.
    General typed-value support beyond references -- int/bytes/bool/list/map --
    remains a follow-up (ADR-2607023200 §6-5)."
   [ref? v] (if (ref? v) v (str v)))
@@ -102,7 +102,7 @@
   [db s ref?]
   (reduce-kv (fn [db p os]
                (reduce (fn [db o] (index/retract-quad db {:s s :p p :o o} ref?)) db os))
-             db (get-in db [:spo s] {})))
+             db (get-in db [:eavt s] {})))
 
 (defn apply-quad
   "Apply one `:op`-tagged `{:s :p :o :op}` quad to the db (ADR-2607071610).
@@ -270,7 +270,7 @@
                   (when (or vt card uniq tuple-types-str)
                     [ent {:value-type vt :cardinality (or card "many") :unique uniq
                           :tuple-types (some-> tuple-types-str (str/split #","))}]))))
-        (:spo db)))
+        (:eavt db)))
 
 (defn- validate-value-type!
   "`value-type` -> the check run against the ORIGINAL value `v` (before
@@ -465,16 +465,16 @@
            :eavt (cond
                    (and c0 c1) (for [v (get (index/entity-attrs db c0) c1 #{})] [c0 c1 v])
                    c0          (for [[a vs] (index/entity-attrs db c0), v vs]   [c0 a v])
-                   :else       (for [[e pm] (:spo db), [a vs] pm, v vs]         [e a v]))
+                   :else       (for [[e pm] (:eavt db), [a vs] pm, v vs]         [e a v]))
            ;; AEVT — key order [a e v]
            :aevt (cond
                    c0    (for [[e vs] (index/by-predicate db c0), v vs]   [e c0 v])
-                   :else (for [[a em] (:pso db), [e vs] em, v vs]         [e a v]))
+                   :else (for [[a em] (:aevt db), [e vs] em, v vs]         [e a v]))
            ;; AVET — key order [a v e]; [a v] is the point lookup
            :avet (cond
                    (and c0 c1) (for [e (index/by-predicate-value db c0 c1)] [e c0 c1])
                    c0          (for [[e vs] (index/by-predicate db c0), v vs] [e c0 v])
-                   :else       (for [[a em] (:pso db), [e vs] em, v vs]       [e a v]))
+                   :else       (for [[a em] (:aevt db), [e vs] em, v vs]       [e a v]))
            ;; VAET — key order [v a e]; [v a] is the reverse-reference point
            ;; lookup (`refs-to`). Populated ONLY for quads whose value passed
            ;; the caller's `ref?` -- same scope `refs`/`entity-attr` document.
@@ -484,7 +484,7 @@
            :vaet (cond
                    (and c0 c1) (for [e (get (index/refs-to db c0) c1 #{})] [e c1 c0])
                    c0          (for [[a es] (index/refs-to db c0), e es]   [e a c0])
-                   :else       (for [[o pm] (:ocp db), [a es] pm, e es]    [e a o])))
+                   :else       (for [[o pm] (:vaet db), [a es] pm, e es]    [e a o])))
          rows (for [[e a v] triples] {:e e :a a :v_edn (render-value v) :added true})
          rows (filter visible? rows)
          rows (cond->> rows limit (take limit))]

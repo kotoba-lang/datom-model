@@ -91,7 +91,7 @@ parameters, and both are **required** — there is no permissive-default arity.
 
 The predicate deciding whether a value is a *reference*: whether it survives quad
 coercion verbatim instead of being stringified, and whether it gets a
-reverse-reference (`:ocp`/VAET) index entry. `kotobase-peer` defaulted it to
+reverse-reference (`:vaet`) index entry. `kotobase-peer` defaulted it to
 `ipld.core/link?`.
 
 [`datalog.index`](https://github.com/kotoba-lang/datalog) already made `ref?` required
@@ -167,11 +167,18 @@ and are listed because they are easy to misread as guarantees.
    attributes with schema installed.
 5. **`:db/ident` uniqueness is unenforced.** If two entities assert the same ident,
    which one `entid` returns is unspecified (`q` returns a set).
-6. **`datoms`' unfiltered branches reach into the raw index maps** (`(:spo db)`,
-   `(:pso db)`, `(:ocp db)`) instead of going through `datalog.index` accessors,
+6. **`datoms`' unfiltered branches reach into the raw index maps** (`(:eavt db)`,
+   `(:aevt db)`, `(:vaet db)`) instead of going through `datalog.index` accessors,
    because `datalog.index` exposes no whole-index scan. The index representation
    leaks into this layer. Kept verbatim so behavior is identical; closing it needs an
    accessor added upstream.
+
+   The 2026-08-20 rename of those keys (they were `:spo`/`:pso`/`:ocp`) is what
+   this leak costs: an accessor would have made it a no-op here. It was not
+   silent, though — bumping the `datalog` pin without re-pointing these three
+   lines turns 69 green tests into 23 failures and 8 errors, because
+   `datalog.query` now refuses a db carrying the old keys instead of scanning a
+   `nil` index and reporting zero rows.
 7. **`datalog-query-plan` costs a scan per clause when no statistics are supplied** —
    the `:visible-scan` fallback runs a real `datalog.query/query` for each clause just
    to count it. Fine for small graphs, not free.
