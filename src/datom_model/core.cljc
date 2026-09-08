@@ -40,7 +40,7 @@
   Pass `(constantly true)` to see everything, as an explicit choice."
   (:require #?(:clj  [clojure.edn :as edn]
                :cljs [cljs.reader :as edn])   ; both expose read-string over EDN
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [datalog.index :as index]
             [datalog.query :as dq]
             [datalog.core :as dl]

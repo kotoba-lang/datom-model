@@ -10,7 +10,12 @@
  ;; encrypts anything. The two places kotobase-peer's model half still touched
  ;; IPLD (`ipld/link?` as the default `ref?`, and `link->edn` inside `datoms`'
  ;; wire encoder) are injected parameters here instead -- see the README.
- :deps {io.github.kotoba-lang/datalog {:git/sha "a43dc1cf72ce6abd8969e206c3b1efe89bb0500c"}
+ :deps {
+        ;; kotoba.lang.text, not clojure.string. Pinned as an explicit floor:
+        ;; tools.deps takes the NEWEST sha it is shown, so without a floor here
+        ;; this repo silently rides whatever a sibling happens to name.
+        io.github.kotoba-lang/text {:git/sha "73bdb13ae7a3d004b44bca08be03a3191157a38f"}
+       io.github.kotoba-lang/datalog {:git/sha "a43dc1cf72ce6abd8969e206c3b1efe89bb0500c"}
         io.github.kotoba-lang/datom   {:git/sha "58cc6f3a1085951af764261fc62a723de98818c9"}}
  :aliases
  {:test {:extra-paths ["test"]
