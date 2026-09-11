@@ -203,12 +203,12 @@ AES-256-GCM / HMAC-SHA256 test-crypto preamble they need — are not, because no
 that code is here.
 
 ```bash
-clojure -M:test     # JVM
-clojure -M:lint     # clj-kondo
+kbb -M:test     # JVM
+kbb -M:lint     # clj-kondo
 npm install && npm run test:cljs   # real ClojureScript (shadow-cljs :node-test)
 ```
 
-The ClojureScript job resolves its `:source-paths` from `clojure -Spath`, so it
+The ClojureScript job resolves its `:source-paths` from `kbb -Spath`, so it
 compiles against the exact `deps.edn` git SHAs the JVM job uses — never a
 hand-duplicated path list. Both runtimes run the same suite.
 
