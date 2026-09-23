@@ -38,7 +38,7 @@
   `visible?` is required everywhere it appears, unchanged from the source
   (ADR-2607050500: query is a first-class effect all the way up this stack).
   Pass `(constantly true)` to see everything, as an explicit choice."
-  (:require #?(:clj  [clojure.edn :as edn]
+  (:require #?(:clj  [kotoba.lang.edn :as edn]
                :cljs [cljs.reader :as edn])   ; both expose read-string over EDN
             [kotoba.lang.text :as str]
             [datalog.index :as index]
