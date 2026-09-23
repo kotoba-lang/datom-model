@@ -20,7 +20,7 @@
   extraction would not have worked. `->wire` reproduces
   `arrangement.core/link->edn`'s exact `[\"ipld/link\" cid]` output, so the
   `:v_edn` assertions here are byte-identical to the source repo's."
-  (:require #?(:clj [clojure.test :refer [deftest is testing]]
+  (:require #?(:clj [kotoba.test :refer [deftest is testing]]
                :cljs [cljs.test :refer [deftest is testing] :include-macros true])
             [datalog.index :as index]
             [datom-model.core :as m]))
