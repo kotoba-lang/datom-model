@@ -17,7 +17,7 @@
   is a required argument here, so `transact` gains an explicit predicate where
   the source relied on `ipld.core/link?` by default. This db has no reference
   values, so that predicate is `no-refs`."
-  (:require #?(:clj [clojure.test :refer [deftest is testing]]
+  (:require #?(:clj [kotoba.test :refer [deftest is testing]]
                :cljs [cljs.test :refer [deftest is testing] :include-macros true])
             [datom-model.core :as m]))
 
