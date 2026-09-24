@@ -401,7 +401,7 @@
 
 (deftest transact-with-schema-rejects-unknown-attribute
   (let [db (m/install-schema (m/empty-db) {"role" {:db/valueType :string}} ref?)]
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"unknown attribute"
                           (m/transact-with-schema db [{:s "alice" :p "nickname" :o "Al"}] ref? {})))))
 
@@ -414,7 +414,7 @@
 
 (deftest transact-with-schema-rejects-value-type-mismatch
   (let [db (m/install-schema (m/empty-db) {"age" {:db/valueType :long}} ref?)]
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db [{:s "bob" :p "age" :o "not-a-number"}] ref? {})))
     (testing "a real long passes validation (storage still stringifies -- schema validates the ORIGINAL value's type, it doesn't change the stored representation)"
@@ -437,7 +437,7 @@
 (deftest transact-with-schema-unique-identity-rejects-cross-entity-collision
   (let [db0 (m/install-schema (m/empty-db) {"email" {:db/valueType :string :db/unique :identity}} ref?)
         db1 (m/transact-with-schema db0 [{:s "alice" :p "email" :o "a@x.com"}] ref? {})]
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"unique attribute violation"
                           (m/transact-with-schema db1 [{:s "bob" :p "email" :o "a@x.com"}] ref? {})))
     (testing "the SAME entity re-asserting its own unique value is not a violation"
@@ -448,7 +448,7 @@
   ;; regression test for a real bug: passing {:db/valueType ...} directly to
   ;; transact-with-schema (never pre-installed via install-schema) used to
   ;; silently skip value-type validation entirely.
-  (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+  (is (thrown-with-msg? js/Error
                         #"schema violation"
                         (m/transact-with-schema (m/empty-db)
                                                 [{:s "bob" :p "age" :o "not-a-number"}]
@@ -460,13 +460,13 @@
         the-id #uuid "0f1e86a9-aa89-414e-8368-d4e95e9fcd4c"]
     (testing "validates against the ORIGINAL value's type; storage still stringifies"
       (is (= #{(str the-id)} (get (m/pull (m/transact-with-schema db0 [{:s "a" :p "id" :o the-id}] ref? {}) "a") "id"))))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db0 [{:s "a" :p "id" :o "not-a-uuid"}] ref? {})))))
 
 (deftest instant-value-type
   (let [db0 (m/install-schema (m/empty-db) {"born" {:db/valueType :instant}} ref?)]
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db0 [{:s "a" :p "born" :o "not-a-date"}] ref? {})))))
 
@@ -475,7 +475,7 @@
         db1 (m/transact-with-schema db0 [{:s "a" :p "status" :o :active} {:s "a" :p "op" :o 'foo}] ref? {})]
     (is (= #{(str :active)} (get (m/pull db1 "a") "status")))
     (is (= #{(str 'foo)} (get (m/pull db1 "a") "op")))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db0 [{:s "a" :p "status" :o "active"}] ref? {})))))
 
@@ -484,10 +484,10 @@
                               {"coords" {:db/valueType :tuple :db/tupleTypes [:double :double]}}
                               ref?)]
     (is (= #{(str [1.0 2.0])} (get (m/pull (m/transact-with-schema db0 [{:s "a" :p "coords" :o [1.0 2.0]}] ref? {}) "a") "coords")))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"tuple arity mismatch"
                           (m/transact-with-schema db0 [{:s "a" :p "coords" :o [1.0 2.0 3.0]}] ref? {})))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db0 [{:s "a" :p "coords" :o [1.0 "not-a-double"]}] ref? {})))))
 
@@ -500,7 +500,7 @@
     (is (= #{"alice"}
            (get (m/refs (m/transact-with-schema db0 [{:s "alice" :p "knows" :o bob}] ref? {}) bob)
                 "knows")))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"schema violation"
                           (m/transact-with-schema db0 [{:s "alice" :p "knows" :o "bob"}] ref? {})))))
 
@@ -510,10 +510,10 @@
   ;; only {:s :p :o} / [:db/add e a v] / [e a v]. Plain `transact` handles
   ;; both retraction forms; `transact-with-schema` throws on them.
   (let [db (m/install-schema (m/empty-db) {"role" {:db/valueType :string}} ref?)]
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"unrecognized tx-data item"
                           (m/transact-with-schema db [[:db/retract "alice" "role" "admin"]] ref? {})))
-    (is (thrown-with-msg? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+    (is (thrown-with-msg? js/Error
                           #"unrecognized tx-data item"
                           (m/transact-with-schema db [[:db/retractEntity "alice"]] ref? {})))))
 
